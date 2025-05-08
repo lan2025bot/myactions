@@ -48,7 +48,7 @@ function util::deployk8s(){
       echo $KIND_VERSION
     fi
 
-    export IMGTAG=${IMGTAG:-"v1.30.0"}
+    export IMGTAG=${IMGTAG:-"v1.33.0"}
     export STORAGE_MEDIA_TYPE=${STORAGE_MEDIA_TYPE:-"json"}
     export KIND_IMG_REPO=${KIND_IMG_REPO:-"kindest/testnode"}
     export KIND_IMG_REGISTRY=${KIND_IMG_REGISTRY:-"ghcr.io"}
@@ -63,7 +63,7 @@ function util::deployk8s(){
 
     nohup docker pull ${KIND_IMG_REGISTRY}/${KIND_IMG_USER}/${KIND_IMG_REPO}:${KIND_VERSION}-${IMGTAG} &
 
-    export ETCD_VERSION=${ETCD_VERSION:-"v3.5.14"}
+    export ETCD_VERSION=${ETCD_VERSION:-"v3.5.20"}
     wget -q https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     tar -xf etcd-${ETCD_VERSION}-linux-amd64.tar.gz && rm -f etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     mv etcd-${ETCD_VERSION}-linux-amd64/etcd* /usr/local/bin/ && rm -rf etcd-${ETCD_VERSION}-linux-amd64

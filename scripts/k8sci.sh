@@ -9,6 +9,8 @@ function util::getbuild(){
   if [ $STEP_WHAT = "getbuild" ];then 
     if [ $KIND_VERSION = "latest" ];then 
       echo "download latest version of kind."
+      wget -q https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+      chmod +x kind-linux-amd64 &&  mv kind-linux-amd64 /usr/local/bin/kind
     else 
       wget -q https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64
       chmod +x kind-linux-amd64 &&  mv kind-linux-amd64 /usr/local/bin/kind
@@ -63,7 +65,7 @@ function util::deployk8s(){
 
     nohup docker pull ${KIND_IMG_REGISTRY}/${KIND_IMG_USER}/${KIND_IMG_REPO}:${KIND_VERSION}-${IMGTAG} &
 
-    export ETCD_VERSION=${ETCD_VERSION:-"v3.5.20"}
+    export ETCD_VERSION=${ETCD_VERSION:-"v3.5.21"}
     wget -q https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     tar -xf etcd-${ETCD_VERSION}-linux-amd64.tar.gz && rm -f etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     mv etcd-${ETCD_VERSION}-linux-amd64/etcd* /usr/local/bin/ && rm -rf etcd-${ETCD_VERSION}-linux-amd64
@@ -248,6 +250,18 @@ function util::runtests(){
           --disable-log-dump=true | tee ${PWD}/_artifacts/testreport/ginkgo-e2e.log
     fi
 
+    if [ $TEST_WHAT = "MutatingAdmissionPolicy" ];then
+      ginkgo -v --race --trace --nodes=25                \
+          --focus="MutatingAdmissionPolicy"     \
+          /usr/local/bin/e2e.test                       \
+          --                                            \
+          --kubeconfig=${PWD}/_artifacts/config     \
+          --provider=local                              \
+          --dump-logs-on-failure=true                  \
+          --report-dir=${PWD}/_artifacts/testreport            \
+          --disable-log-dump=true | tee ${PWD}/_artifacts/testreport/ginkgo-e2e.log
+    fi
+
     if [ $TEST_WHAT = "CustomResourceFieldSelectors" ];then
       ginkgo -v --race --trace --nodes=25                \
           --focus="CustomResourceFieldSelectors"     \
@@ -261,17 +275,17 @@ function util::runtests(){
     fi
     # should create pod, add ipv6 and ipv4 ip to host ips
 
-    if [ $TEST_WHAT = "MutatingAdmissionPolicy" ];then
-      ginkgo -v --race --trace --nodes=25                \
-          --focus="MutatingAdmissionPolicy"     \
-          /usr/local/bin/e2e.test                       \
-          --                                            \
-          --kubeconfig=${PWD}/_artifacts/config     \
-          --provider=local                              \
-          --dump-logs-on-failure=true                  \
-          --report-dir=${PWD}/_artifacts/testreport            \
-          --disable-log-dump=true | tee ${PWD}/_artifacts/testreport/ginkgo-e2e.log
-    fi
+    # if [ $TEST_WHAT = "MutatingAdmissionPolicy" ];then
+    #   ginkgo -v --race --trace --nodes=25                \
+    #       --focus="MutatingAdmissionPolicy"     \
+    #       /usr/local/bin/e2e.test                       \
+    #       --                                            \
+    #       --kubeconfig=${PWD}/_artifacts/config     \
+    #       --provider=local                              \
+    #       --dump-logs-on-failure=true                  \
+    #       --report-dir=${PWD}/_artifacts/testreport            \
+    #       --disable-log-dump=true | tee ${PWD}/_artifacts/testreport/ginkgo-e2e.log
+    # fi
 
     if [ $TEST_WHAT = "conformance-lease" ];then
       echo "hello lease API should be available"
